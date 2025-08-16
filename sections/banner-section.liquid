@@ -1,0 +1,315 @@
+<!-- Banner Section -->
+<div class="banner-section" id="banner-{{ section.id }}">
+  <div class="banner-container">
+    <!-- Header with Brand -->
+    <div class="banner-header">
+      <div class="hamburger-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <h1 class="brand-name">{{ section.settings.brand_name }}</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="banner-content">
+      <div class="banner-text">
+        <h2 class="banner-headline">{{ section.settings.headline }}</h2>
+        <p class="banner-subtitle">{{ section.settings.subtitle }}</p>
+        {% if section.settings.description != blank %}
+          <p class="banner-description">{{ section.settings.description }}</p>
+        {% endif %}
+        
+        <!-- CTA Button -->
+        <div class="banner-cta">
+          <a href="{{ section.settings.button_link | default: '/collections/all' }}" class="shop-now-btn">
+            {{ section.settings.button_text }}
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
+              <path d="M12 1L19 8L12 15M19 8H1" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Illustration -->
+      <div class="banner-illustration">
+        <svg class="gift-illustration" viewBox="0 0 400 300" fill="none">
+          <!-- Camera -->
+          <rect x="260" y="50" width="80" height="60" rx="8" stroke="currentColor" stroke-width="2"/>
+          <circle cx="300" cy="80" r="20" stroke="currentColor" stroke-width="2"/>
+          <circle cx="300" cy="80" r="12" stroke="currentColor" stroke-width="2"/>
+          <rect x="320" y="65" width="15" height="8" stroke="currentColor" stroke-width="2"/>
+          
+          <!-- Lens -->
+          <circle cx="120" cy="90" r="35" stroke="currentColor" stroke-width="2"/>
+          <rect x="90" y="125" width="60" height="20" stroke="currentColor" stroke-width="2"/>
+          
+          <!-- Watch -->
+          <circle cx="350" cy="180" r="25" stroke="currentColor" stroke-width="2"/>
+          <line x1="350" y1="165" x2="350" y2="180" stroke="currentColor" stroke-width="2"/>
+          <line x1="350" y1="180" x2="360" y2="190" stroke="currentColor" stroke-width="2"/>
+          <rect x="320" y="190" width="60" height="15" rx="7" stroke="currentColor" stroke-width="2"/>
+          
+          <!-- Map -->
+          <rect x="50" y="180" width="100" height="80" stroke="currentColor" stroke-width="2"/>
+          <path d="M60 200 Q80 190 100 200 Q120 210 140 200" stroke="currentColor" stroke-width="2"/>
+          <circle cx="90" cy="220" r="3" fill="currentColor"/>
+          
+          <!-- Pen -->
+          <line x1="370" y1="120" x2="390" y2="140" stroke="currentColor" stroke-width="3"/>
+          <circle cx="368" cy="118" r="3" stroke="currentColor" stroke-width="2"/>
+          
+          <!-- Notebook -->
+          <rect x="180" y="160" width="60" height="80" stroke="currentColor" stroke-width="2"/>
+          <line x1="190" y1="180" x2="230" y2="180" stroke="currentColor" stroke-width="1"/>
+          <line x1="190" y1="200" x2="230" y2="200" stroke="currentColor" stroke-width="1"/>
+          <line x1="190" y1="220" x2="220" y2="220" stroke="currentColor" stroke-width="1"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Footer Text -->
+    <div class="banner-footer">
+      <p class="sustainable-text">{{ section.settings.footer_text }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Banner Styles -->
+<style>
+  .banner-section {
+    min-height: 100vh;
+    background: #f8f8f8;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+  }
+
+  .banner-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .banner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+  }
+
+  .hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .hamburger-menu span {
+    width: 25px;
+    height: 3px;
+    background: #000;
+    transition: all 0.3s ease;
+  }
+
+  .brand-name {
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 0.2em;
+    margin: 0;
+  }
+
+  .banner-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    flex: 1;
+  }
+
+  .banner-text {
+    max-width: 500px;
+  }
+
+  .banner-headline {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin: 0 0 20px 0;
+    line-height: 1.1;
+  }
+
+  .banner-subtitle {
+    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+    font-weight: 600;
+  }
+
+  .banner-description {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 30px 0;
+    color: #666;
+  }
+
+  .shop-now-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #000;
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    border: 2px solid #000;
+  }
+
+  .shop-now-btn:hover {
+    background: transparent;
+    color: #000;
+    transform: translateX(5px);
+  }
+
+  .shop-now-btn svg {
+    transition: transform 0.3s ease;
+  }
+
+  .shop-now-btn:hover svg {
+    transform: translateX(5px);
+  }
+
+  .banner-illustration {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .gift-illustration {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    color: #333;
+  }
+
+  .banner-footer {
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .sustainable-text {
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .banner-container {
+      height: auto;
+      min-height: 100vh;
+    }
+
+    .banner-content {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      text-align: center;
+    }
+
+    .banner-headline {
+      font-size: 2.5rem;
+    }
+
+    .brand-name {
+      font-size: 1.5rem;
+    }
+
+    .banner-illustration {
+      order: -1;
+    }
+
+    .gift-illustration {
+      max-width: 300px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .banner-section {
+      padding: 15px;
+    }
+
+    .banner-headline {
+      font-size: 2rem;
+    }
+
+    .banner-subtitle {
+      font-size: 1.1rem;
+    }
+
+    .shop-now-btn {
+      padding: 12px 25px;
+      font-size: 0.8rem;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Banner Section",
+  "class": "banner-section-wrapper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "Brand Name",
+      "default": "TISSO VISON"
+    },
+    {
+      "type": "text",
+      "id": "headline",
+      "label": "Main Headline",
+      "default": "The Gift Guide"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Discover Joy: Your Ultimate Holiday Gift Destination."
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season."
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "text",
+      "id": "footer_text",
+      "label": "Footer Text",
+      "default": "SUSTAINABLE, ETHICALLY MADE ACTIVEWEAR"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banner Section"
+    }
+  ]
+}
+{% endschema %}
