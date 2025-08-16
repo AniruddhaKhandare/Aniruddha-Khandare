@@ -1,0 +1,550 @@
+{% comment %}
+  Variant Selector Snippet
+  Handles dynamic variant selection and price updates
+  Usage: {% render 'variant-selector', product: product, selected_variant: variant %}
+{% endcomment %}
+
+{% assign product = product %}
+{% assign current_variant = selected_variant | default: product.selected_or_first_available_variant %}
+
+<div class="variant-selector-wrapper" data-product-id="{{ product.id }}">
+  
+  {% unless product.has_only_default_variant %}
+    
+    <!-- Option 1 (usually Color) -->
+    {% if product.options_with_values[0] %}
+      {% assign option_1 = product.options_with_values[0] %}
+      <div class="variant-option-container" data-option-index="0">
+        <label class="variant-option-label">{{ option_1.name }}</label>
+        
+        {% if option_1.name == 'Color' or option_1.name == 'Colour' %}
+          <!-- Color Buttons -->
+          <div class="color-option-buttons">
+            {% for value in option_1.values %}
+              <button 
+                type="button" 
+                class="color-option-button" 
+                data-option-value="{{ value | escape }}"
+                data-option-index="0"
+                {% if current_variant.option1 == value %}aria-pressed="true"{% endif %}
+              >
+                {{ value }}
+              </button>
+            {% endfor %}
+          </div>
+        {% else %}
+          <!-- Dropdown for other options -->
+          <select class="variant-option-select" data-option-index="0">
+            {% for value in option_1.values %}
+              <option 
+                value="{{ value | escape }}"
+                {% if current_variant.option1 == value %}selected{% endif %}
+              >
+                {{ value }}
+              </option>
+            {% endfor %}
+          </select>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Option 2 (usually Size) -->
+    {% if product.options_with_values[1] %}
+      {% assign option_2 = product.options_with_values[1] %}
+      <div class="variant-option-container" data-option-index="1">
+        <label class="variant-option-label">{{ option_2.name }}</label>
+        
+        {% if option_2.name == 'Size' %}
+          <!-- Size Dropdown -->
+          <select class="variant-option-select size-select" data-option-index="1">
+            <option value="">Choose your size</option>
+            {% for value in option_2.values %}
+              <option 
+                value="{{ value | escape }}"
+                {% if current_variant.option2 == value %}selected{% endif %}
+              >
+                {{ value }}
+              </option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <!-- Buttons for other options -->
+          <div class="option-buttons">
+            {% for value in option_2.values %}
+              <button 
+                type="button" 
+                class="option-button" 
+                data-option-value="{{ value | escape }}"
+                data-option-index="1"
+                {% if current_variant.option2 == value %}aria-pressed="true"{% endif %}
+              >
+                {{ value }}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Option 3 (usually Material/Style) -->
+    {% if product.options_with_values[2] %}
+      {% assign option_3 = product.options_with_values[2] %}
+      <div class="variant-option-container" data-option-index="2">
+        <label class="variant-option-label">{{ option_3.name }}</label>
+        
+        <select class="variant-option-select" data-option-index="2">
+          <option value="">Choose {{ option_3.name | downcase }}</option>
+          {% for value in option_3.values %}
+            <option 
+              value="{{ value | escape }}"
+              {% if current_variant.option3 == value %}selected{% endif %}
+            >
+              {{ value }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+
+  {% endunless %}
+
+  <!-- Hidden Input for Selected Variant -->
+  <input type="hidden" class="selected-variant-id" name="id" value="{{ current_variant.id }}">
+  
+  <!-- Variant Error Message -->
+  <div class="variant-error-message" style="display: none;">
+    <p class="error-text">Please select all required options.</p>
+  </div>
+
+  <!-- Inventory Status -->
+  <div class="variant-inventory-status">
+    <span class="inventory-text" data-inventory-status>
+      {% if current_variant.available %}
+        {% if current_variant.inventory_quantity > 0 and current_variant.inventory_policy == 'deny' %}
+          {{ current_variant.inventory_quantity }} in stock
+        {% else %}
+          In stock
+        {% endif %}
+      {% else %}
+        Out of stock
+      {% endif %}
+    </span>
+  </div>
+
+</div>
+
+<!-- Variant Data for JavaScript -->
+<script type="application/json" class="variant-data" data-product-variants="{{ product.id }}">
+{
+  "variants": [
+    {% for variant in product.variants %}
+      {
+        "id": {{ variant.id }},
+        "title": {{ variant.title | json }},
+        "option1": {{ variant.option1 | json }},
+        "option2": {{ variant.option2 | json }},
+        "option3": {{ variant.option3 | json }},
+        "price": {{ variant.price }},
+        "compare_at_price": {{ variant.compare_at_price | default: 0 }},
+        "available": {{ variant.available }},
+        "inventory_quantity": {{ variant.inventory_quantity | default: 0 }},
+        "inventory_policy": {{ variant.inventory_policy | json }},
+        "featured_image": {% if variant.featured_image %}{{ variant.featured_image | img_url: '500x500' | json }}{% else %}null{% endif %}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
+  "options": [
+    {% for option in product.options_with_values %}
+      {
+        "name": {{ option.name | json }},
+        "position": {{ option.position }},
+        "values": {{ option.values | json }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ]
+}
+</script>
+
+<style>
+  .variant-selector-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .variant-option-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .variant-option-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
+    margin: 0;
+  }
+
+  /* Color Options */
+  .color-option-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .color-option-button {
+    border: 2px solid #e0e0e0;
+    background: white;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    min-width: 60px;
+  }
+
+  .color-option-button:hover {
+    border-color: #333;
+    transform: translateY(-1px);
+  }
+
+  .color-option-button[aria-pressed="true"] {
+    border-color: #000;
+    background: #000;
+    color: white;
+  }
+
+  .color-option-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Regular Option Buttons */
+  .option-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .option-button {
+    border: 1px solid #ddd;
+    background: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+  }
+
+  .option-button:hover {
+    border-color: #333;
+  }
+
+  .option-button[aria-pressed="true"] {
+    border-color: #000;
+    background: #f8f8f8;
+  }
+
+  .option-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Select Dropdowns */
+  .variant-option-select {
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    transition: border-color 0.2s ease;
+  }
+
+  .variant-option-select:hover {
+    border-color: #333;
+  }
+
+  .variant-option-select:focus {
+    outline: none;
+    border-color: #000;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .size-select {
+    font-weight: 500;
+  }
+
+  /* Error Message */
+  .variant-error-message {
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    padding: 12px;
+  }
+
+  .error-text {
+    color: #c33;
+    font-size: 0.9rem;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  /* Inventory Status */
+  .variant-inventory-status {
+    margin-top: 5px;
+  }
+
+  .inventory-text {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .inventory-text.low-stock {
+    color: #f57c00;
+  }
+
+  .inventory-text.out-of-stock {
+    color: #d32f2f;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .variant-selector-wrapper {
+      gap: 15px;
+    }
+
+    .color-option-buttons {
+      gap: 8px;
+    }
+
+    .color-option-button {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      min-width: 50px;
+    }
+
+    .variant-option-select {
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      background-size: 14px;
+      padding-right: 35px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .color-option-buttons {
+      gap: 6px;
+    }
+
+    .color-option-button {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const variantSelectors = document.querySelectorAll('.variant-selector-wrapper');
+  
+  variantSelectors.forEach(selector => {
+    initVariantSelector(selector);
+  });
+
+  function initVariantSelector(selectorWrapper) {
+    const productId = selectorWrapper.dataset.productId;
+    const variantData = JSON.parse(selectorWrapper.querySelector('.variant-data').textContent);
+    const variants = variantData.variants;
+    const options = variantData.options;
+    
+    const colorButtons = selectorWrapper.querySelectorAll('.color-option-button');
+    const optionButtons = selectorWrapper.querySelectorAll('.option-button');
+    const selects = selectorWrapper.querySelectorAll('.variant-option-select');
+    const variantIdInput = selectorWrapper.querySelector('.selected-variant-id');
+    const inventoryStatus = selectorWrapper.querySelector('[data-inventory-status]');
+    const errorMessage = selectorWrapper.querySelector('.variant-error-message');
+
+    // Add event listeners
+    colorButtons.forEach(btn => {
+      btn.addEventListener('click', handleOptionChange);
+    });
+    
+    optionButtons.forEach(btn => {
+      btn.addEventListener('click', handleOptionChange);
+    });
+    
+    selects.forEach(select => {
+      select.addEventListener('change', handleOptionChange);
+    });
+
+    function handleOptionChange(event) {
+      const target = event.target;
+      const optionIndex = parseInt(target.dataset.optionIndex);
+      
+      // Handle button selection
+      if (target.classList.contains('color-option-button') || target.classList.contains('option-button')) {
+        // Clear other buttons in the same group
+        const group = target.parentElement;
+        group.querySelectorAll('button').forEach(btn => {
+          btn.setAttribute('aria-pressed', 'false');
+        });
+        target.setAttribute('aria-pressed', 'true');
+      }
+
+      // Get current selections
+      const currentOptions = getCurrentOptions();
+      
+      // Find matching variant
+      const matchingVariant = findVariant(currentOptions);
+      
+      if (matchingVariant) {
+        updateVariant(matchingVariant);
+        hideError();
+        updateAvailableOptions(currentOptions);
+      } else {
+        showError();
+      }
+    }
+
+    function getCurrentOptions() {
+      const options = ['', '', ''];
+      
+      // Get color selection
+      const selectedColor = selectorWrapper.querySelector('.color-option-button[aria-pressed="true"]');
+      if (selectedColor) {
+        options[0] = selectedColor.dataset.optionValue;
+      }
+      
+      // Get other button selections
+      const selectedButtons = selectorWrapper.querySelectorAll('.option-button[aria-pressed="true"]');
+      selectedButtons.forEach(btn => {
+        const index = parseInt(btn.dataset.optionIndex);
+        options[index] = btn.dataset.optionValue;
+      });
+      
+      // Get select values
+      selects.forEach(select => {
+        const index = parseInt(select.dataset.optionIndex);
+        if (select.value) {
+          options[index] = select.value;
+        }
+      });
+      
+      return options;
+    }
+
+    function findVariant(options) {
+      return variants.find(variant => {
+        return variant.option1 === options[0] && 
+               variant.option2 === options[1] && 
+               variant.option3 === options[2];
+      });
+    }
+
+    function updateVariant(variant) {
+      // Update hidden input
+      variantIdInput.value = variant.id;
+      
+      // Update inventory status
+      updateInventoryStatus(variant);
+      
+      // Trigger custom event for price updates
+      const event = new CustomEvent('variantChanged', {
+        detail: { variant: variant, productId: productId }
+      });
+      document.dispatchEvent(event);
+    }
+
+    function updateInventoryStatus(variant) {
+      if (!inventoryStatus) return;
+      
+      let statusText = '';
+      let statusClass = '';
+      
+      if (variant.available) {
+        if (variant.inventory_quantity > 0 && variant.inventory_policy === 'deny') {
+          if (variant.inventory_quantity <= 5) {
+            statusText = `Only ${variant.inventory_quantity} left in stock`;
+            statusClass = 'low-stock';
+          } else {
+            statusText = `${variant.inventory_quantity} in stock`;
+            statusClass = '';
+          }
+        } else {
+          statusText = 'In stock';
+          statusClass = '';
+        }
+      } else {
+        statusText = 'Out of stock';
+        statusClass = 'out-of-stock';
+      }
+      
+      inventoryStatus.textContent = statusText;
+      inventoryStatus.className = `inventory-text ${statusClass}`;
+    }
+
+    function updateAvailableOptions(currentOptions) {
+      // Update available options based on current selection
+      // This prevents selection of unavailable combinations
+      
+      for (let i = 0; i < 3; i++) {
+        const optionElements = selectorWrapper.querySelectorAll(`[data-option-index="${i}"]`);
+        
+        optionElements.forEach(element => {
+          const value = element.dataset.optionValue || element.value;
+          if (!value) return;
+          
+          // Create test options array
+          const testOptions = [...currentOptions];
+          testOptions[i] = value;
+          
+          // Check if any variant exists with these options
+          const hasAvailableVariant = variants.some(variant => {
+            const match1 = !testOptions[0] || variant.option1 === testOptions[0];
+            const match2 = !testOptions[1] || variant.option2 === testOptions[1];
+            const match3 = !testOptions[2] || variant.option3 === testOptions[2];
+            return match1 && match2 && match3 && variant.available;
+          });
+          
+          // Disable/enable based on availability
+          if (element.tagName === 'BUTTON') {
+            element.disabled = !hasAvailableVariant;
+          } else if (element.tagName === 'OPTION') {
+            element.disabled = !hasAvailableVariant;
+          }
+        });
+      }
+    }
+
+    function showError() {
+      if (errorMessage) {
+        errorMessage.style.display = 'block';
+      }
+    }
+
+    function hideError() {
+      if (errorMessage) {
+        errorMessage.style.display = 'none';
+      }
+    }
+
+    // Initialize with current selection
+    const currentOptions = getCurrentOptions();
+    const initialVariant = findVariant(currentOptions);
+    if (initialVariant) {
+      updateVariant(initialVariant);
+      updateAvailableOptions(currentOptions);
+    }
+  }
+});
+</script>
