@@ -1,0 +1,430 @@
+{% comment %}
+  Product Popup Snippet
+  Usage: {% render 'product-popup', product: product %}
+{% endcomment %}
+
+{% assign product = product %}
+
+<div class="product-popup-item" data-product-id="{{ product.id }}">
+  <div class="popup-product-info">
+    <!-- Product Image -->
+    <div class="popup-image-container">
+      {% if product.featured_image %}
+        <img 
+          src="{{ product.featured_image | img_url: '500x500' }}" 
+          alt="{{ product.title | escape }}"
+          class="popup-product-image"
+          loading="lazy"
+        >
+      {% else %}
+        <div class="popup-image-placeholder">
+          <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+            <rect width="100" height="100" fill="#f8f8f8" stroke="#e0e0e0"/>
+            <text x="50" y="55" text-anchor="middle" fill="#999" font-size="12">{{ product.title | truncate: 10 }}</text>
+          </svg>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Product Details -->
+    <div class="popup-product-details">
+      <h3 class="popup-product-title">{{ product.title }}</h3>
+      
+      <!-- Price Display -->
+      <div class="popup-price-wrapper">
+        {% if product.compare_at_price > product.price %}
+          <span class="popup-compare-price">
+            {{ product.compare_at_price | money_without_currency | replace: '.', ',' }}€
+          </span>
+        {% endif %}
+        <span class="popup-current-price" data-price="{{ product.price }}">
+          {{ product.price | money_without_currency | replace: '.', ',' }}€
+        </span>
+      </div>
+
+      <!-- Product Description -->
+      {% if product.description != blank %}
+        <div class="popup-product-description">
+          {{ product.description | strip_html | truncate: 150 }}
+        </div>
+      {% endif %}
+
+      <!-- Variant Options -->
+      {% unless product.has_only_default_variant %}
+        <div class="popup-variant-options">
+          
+          <!-- Color Options (Option 1) -->
+          {% assign color_values = product.options_with_values | where: 'name', 'Color' | first %}
+          {% if color_values and color_values.values.size > 0 %}
+            <div class="variant-option-group" data-option-position="1">
+              <label class="variant-label">{{ color_values.name }}</label>
+              <div class="color-variant-buttons">
+                {% for value in color_values.values %}
+                  <button 
+                    type="button" 
+                    class="color-variant-btn" 
+                    data-value="{{ value | escape }}"
+                    data-option-position="1"
+                  >
+                    {{ value }}
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Size Options (Option 2) -->
+          {% assign size_values = product.options_with_values | where: 'name', 'Size' | first %}
+          {% if size_values and size_values.values.size > 0 %}
+            <div class="variant-option-group" data-option-position="2">
+              <label class="variant-label">{{ size_values.name }}</label>
+              <select class="size-variant-select" data-option-position="2">
+                <option value="">Choose your size</option>
+                {% for value in size_values.values %}
+                  <option value="{{ value | escape }}">{{ value }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          <!-- Material Options (Option 3) if exists -->
+          {% assign material_values = product.options_with_values | where: 'name', 'Material' | first %}
+          {% if material_values and material_values.values.size > 0 %}
+            <div class="variant-option-group" data-option-position="3">
+              <label class="variant-label">{{ material_values.name }}</label>
+              <select class="material-variant-select" data-option-position="3">
+                <option value="">Choose material</option>
+                {% for value in material_values.values %}
+                  <option value="{{ value | escape }}">{{ value }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+        </div>
+      {% endunless %}
+
+      <!-- Add to Cart Form -->
+      <form class="popup-cart-form" data-product-form>
+        <input type="hidden" name="id" class="variant-id-input" value="{{ product.selected_or_first_available_variant.id }}">
+        
+        <!-- Quantity Selector -->
+        <div class="quantity-wrapper">
+          <label class="quantity-label">Quantity</label>
+          <div class="quantity-selector">
+            <button type="button" class="qty-btn qty-minus" aria-label="Decrease quantity">-</button>
+            <input type="number" name="quantity" value="1" min="1" class="qty-input" readonly>
+            <button type="button" class="qty-btn qty-plus" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
+        <!-- Add to Cart Button -->
+        <button 
+          type="submit" 
+          class="popup-add-to-cart-btn"
+          {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+        >
+          <span class="btn-text">
+            {% if product.selected_or_first_available_variant.available %}
+              ADD TO CART
+            {% else %}
+              SOLD OUT
+            {% endif %}
+          </span>
+          <svg width="20" height="16" viewBox="0 0 20 16" fill="none" class="btn-arrow">
+            <path d="M12 1L19 8L12 15M19 8H1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Stock Information -->
+      <div class="stock-info">
+        <span class="stock-status" data-stock-status>
+          {% if product.selected_or_first_available_variant.available %}
+            {% if product.selected_or_first_available_variant.inventory_quantity > 0 %}
+              {{ product.selected_or_first_available_variant.inventory_quantity }} in stock
+            {% else %}
+              In stock
+            {% endif %}
+          {% else %}
+            Out of stock
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Variant Data for JavaScript -->
+<script type="application/json" data-product-variants="{{ product.id }}">
+  {
+    "product": {
+      "id": {{ product.id }},
+      "title": {{ product.title | json }},
+      "handle": {{ product.handle | json }},
+      "variants": [
+        {% for variant in product.variants %}
+          {
+            "id": {{ variant.id }},
+            "title": {{ variant.title | json }},
+            "option1": {{ variant.option1 | json }},
+            "option2": {{ variant.option2 | json }},
+            "option3": {{ variant.option3 | json }},
+            "price": {{ variant.price }},
+            "compare_at_price": {{ variant.compare_at_price | default: 0 }},
+            "available": {{ variant.available }},
+            "inventory_quantity": {{ variant.inventory_quantity | default: 0 }},
+            "featured_image": {
+              "src": "{{ variant.featured_image | img_url: '500x500' }}",
+              "alt": {{ variant.featured_image.alt | json }}
+            }
+          }{% unless forloop.last %},{% endunless %}
+        {% endfor %}
+      ]
+    }
+  }
+</script>
+
+<style>
+  /* Popup Specific Styles */
+  .popup-product-info {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .popup-image-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f8f8;
+    min-height: 250px;
+  }
+
+  .popup-product-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+  }
+
+  .popup-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 200px;
+  }
+
+  .popup-product-details {
+    padding: 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .popup-product-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+
+  .popup-price-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .popup-compare-price {
+    font-size: 1.1rem;
+    color: #999;
+    text-decoration: line-through;
+  }
+
+  .popup-current-price {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #000;
+  }
+
+  .popup-product-description {
+    color: #666;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+
+  .popup-variant-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .variant-option-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .variant-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .color-variant-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .color-variant-btn {
+    border: 2px solid #e0e0e0;
+    background: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+  }
+
+  .color-variant-btn:hover {
+    border-color: #333;
+  }
+
+  .color-variant-btn.selected {
+    border-color: #000;
+    background: #000;
+    color: white;
+  }
+
+  .size-variant-select,
+  .material-variant-select {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+  }
+
+  .quantity-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .quantity-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .quantity-selector {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .qty-btn {
+    background: #f8f8f8;
+    border: none;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: background 0.2s ease;
+  }
+
+  .qty-btn:hover {
+    background: #e8e8e8;
+  }
+
+  .qty-input {
+    border: none;
+    width: 50px;
+    height: 35px;
+    text-align: center;
+    font-weight: 600;
+    background: white;
+  }
+
+  .popup-add-to-cart-btn {
+    background: #000;
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+  }
+
+  .popup-add-to-cart-btn:hover:not(:disabled) {
+    background: #333;
+    transform: translateX(2px);
+  }
+
+  .popup-add-to-cart-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .popup-add-to-cart-btn:hover:not(:disabled) .btn-arrow {
+    transform: translateX(3px);
+  }
+
+  .stock-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+  }
+
+  .stock-status {
+    font-weight: 500;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .popup-product-details {
+      padding: 20px;
+      gap: 12px;
+    }
+
+    .popup-product-title {
+      font-size: 1.2rem;
+    }
+
+    .popup-current-price {
+      font-size: 1.2rem;
+    }
+
+    .color-variant-buttons {
+      gap: 6px;
+    }
+
+    .color-variant-btn {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+  }
+</style>
